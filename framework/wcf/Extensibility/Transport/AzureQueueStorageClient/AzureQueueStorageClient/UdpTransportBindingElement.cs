@@ -6,7 +6,7 @@ using System;
 using System.ServiceModel.Channels;
 using System.Xml;
 
-namespace Microsoft.Samples.Udp
+namespace Microsoft.Samples.AzureQueueStorage
 {
     /// <summary>
     /// Udp Binding Element.  

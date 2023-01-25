@@ -7,7 +7,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading;
 
-namespace Microsoft.Samples.Udp
+namespace Microsoft.Samples.AzureQueueStorage
 {
 
 

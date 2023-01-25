@@ -9,7 +9,7 @@ using System.Net.Sockets;
 using System.ServiceModel;
 using System.ServiceModel.Channels;
 
-namespace Microsoft.Samples.Udp
+namespace Microsoft.Samples.AzureQueueStorage
 {
     /// <summary>
     /// IOutputChannel implementation for Udp.
