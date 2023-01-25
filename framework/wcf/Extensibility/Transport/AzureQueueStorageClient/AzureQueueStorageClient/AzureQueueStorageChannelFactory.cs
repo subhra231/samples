@@ -10,10 +10,7 @@ using System.ServiceModel.Channels;
 namespace Microsoft.Samples.AzureQueueStorage
 {
     /// <summary>
-    /// IChannelFactory implementation for Udp.
-    /// 
-    /// Supports IOutputChannel only, as Udp is fundamentally
-    /// a datagram protocol.
+    /// IChannelFactory implementation for AzureQueueStorage.
     /// </summary>
     class AzureQueueStorageChannelFactory : ChannelFactoryBase<IOutputChannel>
     {

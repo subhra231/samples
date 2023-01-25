@@ -12,7 +12,7 @@ using System.ServiceModel.Channels;
 namespace Microsoft.Samples.AzureQueueStorage
 {
     /// <summary>
-    /// IOutputChannel implementation for Udp.
+    /// IOutputChannel implementation for AzureQueueStorage.
     /// </summary>
     class AzureQueueStorageOutputChannel : ChannelBase, IOutputChannel
     {

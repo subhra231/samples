@@ -12,14 +12,14 @@ using System.ServiceModel.Channels;
 namespace Microsoft.Samples.AzureQueueStorage
 {
     /// <summary>
-    /// Collection of constants used by the Udp Channel classes
+    /// Collection of constants used by the AzureQueueStorage Channel classes
     /// </summary>
     static class AzureQueueStorageConstants
     {
-        internal const string EventLogSourceName = "Microsoft.Samples.Udp";
-        internal const string Scheme = "soap.udp";
-        internal const string UdpBindingSectionName = "system.serviceModel/bindings/sampleProfileUdpBinding";
-        internal const string UdpTransportSectionName = "udpTransport";
+        internal const string EventLogSourceName = "Microsoft.Samples.AzureQueueStorage";
+        internal const string Scheme = "soap.aqs";
+        internal const string AzureQueueStorageBindingSectionName = "system.serviceModel/bindings/sampleProfileAzureQueueStorageBinding";
+        internal const string AzureQueueStorageTransportSectionName = "aqsTransport";
         internal const int WSAETIMEDOUT = 10060;
 
         static MessageEncoderFactory messageEncoderFactory;
@@ -61,10 +61,10 @@ namespace Microsoft.Samples.AzureQueueStorage
 
     static class UdpPolicyStrings
     {
-        public const string UdpNamespace = "http://sample.schemas.microsoft.com/policy/udp";
-        public const string Prefix = "udp";
+        public const string UdpNamespace = "http://sample.schemas.microsoft.com/policy/aqs";
+        public const string Prefix = "aqs";
         public const string MulticastAssertion = "Multicast";
-        public const string TransportAssertion = "soap.udp";
+        public const string TransportAssertion = "soap.aqs";
     }
 
     static class AzureQueueStorageChannelHelpers

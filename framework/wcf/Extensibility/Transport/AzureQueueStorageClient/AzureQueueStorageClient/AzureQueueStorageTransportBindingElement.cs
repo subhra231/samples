@@ -9,8 +9,8 @@ using System.Xml;
 namespace Microsoft.Samples.AzureQueueStorage
 {
     /// <summary>
-    /// Udp Binding Element.  
-    /// Used to configure and construct Udp ChannelFactories and ChannelListeners.
+    /// AzureQueueStorage Binding Element.  
+    /// Used to configure and construct AzureQueueStorage ChannelFactories and ChannelListeners.
     /// </summary>
     public class AzureQueueStorageTransportBindingElement
         : TransportBindingElement // to signal that we're a transport
