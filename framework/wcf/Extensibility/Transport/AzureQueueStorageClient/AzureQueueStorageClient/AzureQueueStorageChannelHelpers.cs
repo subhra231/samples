@@ -14,7 +14,7 @@ namespace Microsoft.Samples.AzureQueueStorage
     /// <summary>
     /// Collection of constants used by the Udp Channel classes
     /// </summary>
-    static class UdpConstants
+    static class AzureQueueStorageConstants
     {
         internal const string EventLogSourceName = "Microsoft.Samples.Udp";
         internal const string Scheme = "soap.udp";
@@ -23,7 +23,7 @@ namespace Microsoft.Samples.AzureQueueStorage
         internal const int WSAETIMEDOUT = 10060;
 
         static MessageEncoderFactory messageEncoderFactory;
-        static UdpConstants()
+        static AzureQueueStorageConstants()
         {
             messageEncoderFactory = new TextMessageEncodingBindingElement().CreateMessageEncoderFactory();
         }
@@ -67,7 +67,7 @@ namespace Microsoft.Samples.AzureQueueStorage
         public const string TransportAssertion = "soap.udp";
     }
 
-    static class UdpChannelHelpers
+    static class AzureQueueStorageChannelHelpers
     {
         /// <summary>
         /// The Channel layer normalizes exceptions thrown by the underlying networking implementations

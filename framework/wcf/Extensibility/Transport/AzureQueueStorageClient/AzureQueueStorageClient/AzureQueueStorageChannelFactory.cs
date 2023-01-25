@@ -15,7 +15,7 @@ namespace Microsoft.Samples.AzureQueueStorage
     /// Supports IOutputChannel only, as Udp is fundamentally
     /// a datagram protocol.
     /// </summary>
-    class UdpChannelFactory : ChannelFactoryBase<IOutputChannel>
+    class AzureQueueStorageChannelFactory : ChannelFactoryBase<IOutputChannel>
     {
         #region member_variables
         BufferManager bufferManager;
@@ -108,7 +108,7 @@ namespace Microsoft.Samples.AzureQueueStorage
         /// <returns></returns>
         protected override IOutputChannel OnCreateChannel(EndpointAddress remoteAddress, Uri via)
         {
-            return new UdpOutputChannel(this, remoteAddress, via, MessageEncoderFactory.Encoder);
+            return new AzureQueueStorageOutputChannel(this, remoteAddress, via, MessageEncoderFactory.Encoder);
         }
 
         protected override void OnClosed()

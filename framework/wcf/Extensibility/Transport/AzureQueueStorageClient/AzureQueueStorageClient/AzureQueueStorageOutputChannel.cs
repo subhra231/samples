@@ -14,7 +14,7 @@ namespace Microsoft.Samples.AzureQueueStorage
     /// <summary>
     /// IOutputChannel implementation for Udp.
     /// </summary>
-    class UdpOutputChannel : ChannelBase, IOutputChannel
+    class AzureQueueStorageOutputChannel : ChannelBase, IOutputChannel
     {
         #region member_variables
         EndpointAddress remoteAddress;
@@ -22,14 +22,14 @@ namespace Microsoft.Samples.AzureQueueStorage
         EndPoint remoteEndPoint;
         Socket socket;
         MessageEncoder encoder;
-        UdpChannelFactory parent;
+        AzureQueueStorageChannelFactory parent;
         #endregion
 
-        internal UdpOutputChannel(UdpChannelFactory factory, EndpointAddress remoteAddress, Uri via, MessageEncoder encoder)
+        internal AzureQueueStorageOutputChannel(AzureQueueStorageChannelFactory factory, EndpointAddress remoteAddress, Uri via, MessageEncoder encoder)
             : base(factory)
         {
             // validate addressing arguments
-            if (!string.Equals(via.Scheme, UdpConstants.Scheme, StringComparison.InvariantCultureIgnoreCase))
+            if (!string.Equals(via.Scheme, AzureQueueStorageConstants.Scheme, StringComparison.InvariantCultureIgnoreCase))
             {
                 throw new ArgumentException(string.Format(CultureInfo.CurrentCulture, 
                     "The scheme {0} specified in address is not supported.", via.Scheme), "via");
@@ -73,7 +73,7 @@ namespace Microsoft.Samples.AzureQueueStorage
                     }
             }
 
-            if (factory.Multicast && !UdpChannelHelpers.IsInMulticastRange(remoteIP))
+            if (factory.Multicast && !AzureQueueStorageChannelHelpers.IsInMulticastRange(remoteIP))
             {
                 throw new ArgumentOutOfRangeException("remoteEndPoint", "Via must be in the valid multicast range.");
             }
@@ -219,7 +219,7 @@ namespace Microsoft.Samples.AzureQueueStorage
             }
             catch (SocketException socketException)
             {
-                throw UdpChannelHelpers.ConvertTransferException(socketException);
+                throw AzureQueueStorageChannelHelpers.ConvertTransferException(socketException);
             }
             finally
             {
@@ -259,9 +259,9 @@ namespace Microsoft.Samples.AzureQueueStorage
         class SendAsyncResult : AsyncResult
         {
             ArraySegment<byte> messageBuffer;
-            UdpOutputChannel channel;
+            AzureQueueStorageOutputChannel channel;
 
-            public SendAsyncResult(UdpOutputChannel channel, Message message, AsyncCallback callback, object state)
+            public SendAsyncResult(AzureQueueStorageOutputChannel channel, Message message, AsyncCallback callback, object state)
                 : base(callback, state)
             {
                 this.channel = channel;
@@ -276,7 +276,7 @@ namespace Microsoft.Samples.AzureQueueStorage
                     }
                     catch (SocketException socketException)
                     {
-                        throw UdpChannelHelpers.ConvertTransferException(socketException);
+                        throw AzureQueueStorageChannelHelpers.ConvertTransferException(socketException);
                     }
 
                     if (!result.CompletedSynchronously)
@@ -314,7 +314,7 @@ namespace Microsoft.Samples.AzureQueueStorage
                 }
                 catch (SocketException socketException)
                 {
-                    throw UdpChannelHelpers.ConvertTransferException(socketException);
+                    throw AzureQueueStorageChannelHelpers.ConvertTransferException(socketException);
                 }
                 finally
                 {

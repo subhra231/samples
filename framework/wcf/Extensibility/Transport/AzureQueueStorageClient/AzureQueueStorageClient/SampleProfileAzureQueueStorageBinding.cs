@@ -18,22 +18,22 @@ namespace Microsoft.Samples.AzureQueueStorage
     /// then we will layer RM+CompositeDuplex on top of Udp. Otherwise we will just
     /// have Udp on our stack.  
     /// </summary>
-    public class SampleProfileUdpBinding : Binding
+    public class SampleProfileAzureQueueStorageBinding : Binding
     {
         bool reliableSessionEnabled;
 
         // private BindingElements
         //CompositeDuplexBindingElement compositeDuplex;
         ReliableSessionBindingElement session;
-        UdpTransportBindingElement transport;
+        AzureQueueStorageTransportBindingElement transport;
         MessageEncodingBindingElement encoding;
 
-        public SampleProfileUdpBinding()
+        public SampleProfileAzureQueueStorageBinding()
         {
             Initialize();
         }
 
-        public SampleProfileUdpBinding(bool reliableSessionEnabled) : this()
+        public SampleProfileAzureQueueStorageBinding(bool reliableSessionEnabled) : this()
         {
             this.ReliableSessionEnabled = reliableSessionEnabled;
         }
@@ -112,14 +112,14 @@ namespace Microsoft.Samples.AzureQueueStorage
 
         void Initialize()
         {
-            transport = new UdpTransportBindingElement();
+            transport = new AzureQueueStorageTransportBindingElement();
             session = new ReliableSessionBindingElement();
             //compositeDuplex = new CompositeDuplexBindingElement();
             encoding = new TextMessageEncodingBindingElement();
         }
 
         //initialize a SampleProfileUdpBinding from the info collected in a ReliableSessionBindingElement if one is present.
-        void InitializeFrom(UdpTransportBindingElement udpTransportBindingElement,
+        void InitializeFrom(AzureQueueStorageTransportBindingElement udpTransportBindingElement,
                     TextMessageEncodingBindingElement textMessageEncodingBindingElement,
                     ReliableSessionBindingElement reliableSessionBindingElement)
                     //CompositeDuplexBindingElement compositeDuplexBindingElement)
@@ -158,7 +158,7 @@ namespace Microsoft.Samples.AzureQueueStorage
             ReliableSessionBindingElement reliableSessionBindingElement = null;
             //CompositeDuplexBindingElement compositeDuplexBindingElement = null;
             TextMessageEncodingBindingElement textMessageEncodingBindingElement = null;
-            UdpTransportBindingElement udpTransportBindingElement = null;
+            AzureQueueStorageTransportBindingElement udpTransportBindingElement = null;
 
             foreach (BindingElement element in elements)
             {
@@ -168,7 +168,7 @@ namespace Microsoft.Samples.AzureQueueStorage
                 }
                 else */if (element is TransportBindingElement)
                 {
-                    udpTransportBindingElement = element as UdpTransportBindingElement;
+                    udpTransportBindingElement = element as AzureQueueStorageTransportBindingElement;
                 }
                 else if (element is TextMessageEncodingBindingElement)
                 {
@@ -199,7 +199,7 @@ namespace Microsoft.Samples.AzureQueueStorage
                 return false;
             }*/
 
-            SampleProfileUdpBinding sampleProfileUdpBinding = new SampleProfileUdpBinding();
+            SampleProfileAzureQueueStorageBinding sampleProfileUdpBinding = new SampleProfileAzureQueueStorageBinding();
             sampleProfileUdpBinding.InitializeFrom(udpTransportBindingElement, textMessageEncodingBindingElement,
                                             reliableSessionBindingElement);
             if (!sampleProfileUdpBinding.IsBindingElementsMatch(udpTransportBindingElement, textMessageEncodingBindingElement,
@@ -212,7 +212,7 @@ namespace Microsoft.Samples.AzureQueueStorage
             return true;
         }
 
-        bool IsBindingElementsMatch(UdpTransportBindingElement udpTransportBindingElement,
+        bool IsBindingElementsMatch(AzureQueueStorageTransportBindingElement udpTransportBindingElement,
                     TextMessageEncodingBindingElement textMessageEncodingBindingElement,
                     ReliableSessionBindingElement reliableSessionBindingElement)
                     //CompositeDuplexBindingElement compositeDuplexBindingElement)
@@ -260,8 +260,8 @@ namespace Microsoft.Samples.AzureQueueStorage
                 return false;
             }
 
-            UdpTransportBindingElement transportA = a as UdpTransportBindingElement;
-            UdpTransportBindingElement transportB = b as UdpTransportBindingElement;
+            AzureQueueStorageTransportBindingElement transportA = a as AzureQueueStorageTransportBindingElement;
+            AzureQueueStorageTransportBindingElement transportB = b as AzureQueueStorageTransportBindingElement;
 
             if (transportB == null)
             {

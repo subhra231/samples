@@ -12,18 +12,18 @@ namespace Microsoft.Samples.AzureQueueStorage
     /// Udp Binding Element.  
     /// Used to configure and construct Udp ChannelFactories and ChannelListeners.
     /// </summary>
-    public class UdpTransportBindingElement 
+    public class AzureQueueStorageTransportBindingElement
         : TransportBindingElement // to signal that we're a transport
     {
         bool multicast;
         static XmlDocument xmlDocument;
 
-        public UdpTransportBindingElement()
+        public AzureQueueStorageTransportBindingElement()
         {
             this.multicast = UdpDefaults.Multicast;
         }
 
-        protected UdpTransportBindingElement(UdpTransportBindingElement other)
+        protected AzureQueueStorageTransportBindingElement(AzureQueueStorageTransportBindingElement other)
             : base(other)
         {
             this.multicast = other.multicast;
@@ -89,7 +89,7 @@ namespace Microsoft.Samples.AzureQueueStorage
         {
             get
             {
-                return UdpConstants.Scheme;
+                return AzureQueueStorageConstants.Scheme;
             }
         }
 
@@ -136,7 +136,7 @@ namespace Microsoft.Samples.AzureQueueStorage
 
         public override BindingElement Clone()
         {
-            return new UdpTransportBindingElement(this);
+            return new AzureQueueStorageTransportBindingElement(this);
         }
 
         public override T GetProperty<T>(BindingContext context)
