@@ -3,11 +3,14 @@
 //----------------------------------------------------------------
 
 using System;
+using System.Buffers;
 using System.Globalization;
 using System.Net;
 using System.Net.Sockets;
 using System.ServiceModel;
 using System.ServiceModel.Channels;
+using Azure.Storage.Queues;
+using Azure.Storage.Queues.Models;
 
 namespace Microsoft.Samples.AzureQueueStorage
 {
@@ -20,85 +23,15 @@ namespace Microsoft.Samples.AzureQueueStorage
         EndpointAddress remoteAddress;
         Uri via;
         EndPoint remoteEndPoint;
-        Socket socket;
         MessageEncoder encoder;
         AzureQueueStorageChannelFactory parent;
+        QueueClient queueClient;
         #endregion
 
         internal AzureQueueStorageOutputChannel(AzureQueueStorageChannelFactory factory, EndpointAddress remoteAddress, Uri via, MessageEncoder encoder)
             : base(factory)
         {
-            // validate addressing arguments
-            if (!string.Equals(via.Scheme, AzureQueueStorageConstants.Scheme, StringComparison.InvariantCultureIgnoreCase))
-            {
-                throw new ArgumentException(string.Format(CultureInfo.CurrentCulture, 
-                    "The scheme {0} specified in address is not supported.", via.Scheme), "via");
-            }
-
-            if (via.IsDefaultPort)
-            {
-                throw new ArgumentException(string.Format(CultureInfo.CurrentCulture, 
-                    "The address {0} must specify a remote port.", via), "via");
-            }
-
-            // convert the Uri host into an IP Address
-            IPAddress remoteIP = null;
-            switch (via.HostNameType)
-            {
-                default:
-                    throw new ArgumentException(string.Format(CultureInfo.CurrentCulture, 
-                        "Cannot determine the remote host address from {0}.",
-                            this.via.ToString()), "via");
-
-                case UriHostNameType.IPv4:
-                case UriHostNameType.IPv6:
-                        remoteIP = IPAddress.Parse(via.Host);
-                        break;
-
-                case UriHostNameType.Basic:
-                case UriHostNameType.Dns:
-                    {
-                        IPHostEntry hostEntry = Dns.GetHostEntry(via.Host);
-                        if (hostEntry.AddressList.Length > 0)
-                        {
-                            remoteIP = hostEntry.AddressList[0];
-                        }
-                        else
-                        {
-                            throw new ArgumentException(string.Format(CultureInfo.CurrentCulture, 
-                                "Failed to resolve remote host: {0}.", via.Host), 
-                                "via");
-                        }
-                        break;
-                    }
-            }
-
-            if (factory.Multicast && !AzureQueueStorageChannelHelpers.IsInMulticastRange(remoteIP))
-            {
-                throw new ArgumentOutOfRangeException("remoteEndPoint", "Via must be in the valid multicast range.");
-            }
-
-            this.parent = factory;
-            this.remoteAddress = remoteAddress;
-            this.via = via;
-            this.encoder = encoder;
-            this.remoteEndPoint = new IPEndPoint(remoteIP, via.Port);
-            this.socket = new Socket(this.remoteEndPoint.AddressFamily, SocketType.Dgram, ProtocolType.Udp);
-
-            if (parent.Multicast)
-            {
-                this.socket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, 1);
-#if LATER // Support outgoing interface
-                if (this.remoteEndPoint.AddressFamily == AddressFamily.InterNetwork)
-                {
-                    this.socket.SetSocketOption(SocketOptionLevel.IP, SocketOptionName.MulticastInterface, IPAddress.HostToNetworkOrder((int)interfaceIndex));
-                }
-                else //  we are IPv6
-                {
-                    this.sendSocketV6.SetSocketOption(SocketOptionLevel.IPv6, SocketOptionName.MulticastInterface, (int)interfaceIndex);
-                }
-#endif
-            }
+            //To be implemented
         }
 
         #region IOutputChannel_Properties
@@ -159,7 +92,7 @@ namespace Microsoft.Samples.AzureQueueStorage
         /// </summary>
         protected override void OnAbort()
         {
-            this.socket.Close(0);
+
         }
 
         /// <summary>
@@ -167,7 +100,7 @@ namespace Microsoft.Samples.AzureQueueStorage
         /// </summary>
         protected override void OnClose(TimeSpan timeout)
         {
-            this.socket.Close();
+
         }
 
         protected override IAsyncResult OnBeginClose(TimeSpan timeout, AsyncCallback callback, object state)
@@ -202,29 +135,17 @@ namespace Microsoft.Samples.AzureQueueStorage
 
         public void Send(Message message)
         {
-            //base.ThrowIfDisposedOrNotOpen();
-            
-            ArraySegment<byte> messageBuffer = EncodeMessage(message);
-
             try
             {
-                int bytesSent = this.socket.SendTo(messageBuffer.Array, messageBuffer.Offset, messageBuffer.Count,
-                    SocketFlags.None, this.remoteEndPoint);
-
-                if (bytesSent != messageBuffer.Count)
-                {
-                    throw new CommunicationException(string.Format(CultureInfo.CurrentCulture, 
-                        "A Udp error occurred sending a message to {0}.", this.remoteEndPoint));
-                }
+                queueClient.SendMessage(message.ToString());
             }
-            catch (SocketException socketException)
+            catch
             {
-                throw AzureQueueStorageChannelHelpers.ConvertTransferException(socketException);
+
             }
             finally
             {
-                // we need to make sure buffers are always returned to the BufferManager
-                parent.BufferManager.ReturnBuffer(messageBuffer.Array);
+               
             }
         }
 
@@ -271,8 +192,7 @@ namespace Microsoft.Samples.AzureQueueStorage
                     IAsyncResult result = null;
                     try
                     {
-                        result = channel.socket.BeginSendTo(messageBuffer.Array, messageBuffer.Offset, messageBuffer.Count,
-                            SocketFlags.None, channel.remoteEndPoint, new AsyncCallback(OnSend), this);
+                        
                     }
                     catch (SocketException socketException)
                     {
@@ -304,13 +224,7 @@ namespace Microsoft.Samples.AzureQueueStorage
             {
                 try
                 {
-                    int bytesSent = channel.socket.EndSendTo(result);
-
-                    if (bytesSent != messageBuffer.Count)
-                    {
-                        throw new CommunicationException(string.Format(CultureInfo.CurrentCulture, 
-                            "A Udp error occurred sending a message to {0}.", channel.remoteEndPoint));
-                    }
+                    
                 }
                 catch (SocketException socketException)
                 {
