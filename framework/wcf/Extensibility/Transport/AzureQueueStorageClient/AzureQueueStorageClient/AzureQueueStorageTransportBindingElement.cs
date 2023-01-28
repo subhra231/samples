@@ -15,8 +15,8 @@ namespace Microsoft.Samples.AzureQueueStorage
     public class AzureQueueStorageTransportBindingElement
         : TransportBindingElement // to signal that we're a transport
     {
-        bool multicast;
-        static XmlDocument xmlDocument;
+        private bool multicast;
+        private static XmlDocument xmlDocument;
 
         public AzureQueueStorageTransportBindingElement()
         {
@@ -280,7 +280,7 @@ namespace Microsoft.Samples.AzureQueueStorage
         }*/
 
         //reflects the structure of the wsdl
-        static XmlDocument XmlDoc
+        private static XmlDocument XmlDoc
         {
             get
             {

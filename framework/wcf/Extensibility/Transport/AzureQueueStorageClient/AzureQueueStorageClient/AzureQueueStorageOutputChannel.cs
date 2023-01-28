@@ -17,15 +17,15 @@ namespace Microsoft.Samples.AzureQueueStorage
     /// <summary>
     /// IOutputChannel implementation for AzureQueueStorage.
     /// </summary>
-    class AzureQueueStorageOutputChannel : ChannelBase, IOutputChannel
+    internal class AzureQueueStorageOutputChannel : ChannelBase, IOutputChannel
     {
         #region member_variables
-        EndpointAddress remoteAddress;
-        Uri via;
-        EndPoint remoteEndPoint;
-        MessageEncoder encoder;
-        AzureQueueStorageChannelFactory parent;
-        QueueClient queueClient;
+        private EndpointAddress remoteAddress;
+        private Uri via;
+        private EndPoint remoteEndPoint;
+        private MessageEncoder encoder;
+        private AzureQueueStorageChannelFactory parent;
+        private QueueClient queueClient;
         #endregion
 
         internal AzureQueueStorageOutputChannel(AzureQueueStorageChannelFactory factory, EndpointAddress remoteAddress, Uri via, MessageEncoder encoder)
@@ -119,7 +119,7 @@ namespace Microsoft.Samples.AzureQueueStorage
         /// <summary>
         /// Address the Message and serialize it into a byte array.
         /// </summary>
-        ArraySegment<byte> EncodeMessage(Message message)
+        private ArraySegment<byte> EncodeMessage(Message message)
         {
             try
             {
@@ -177,10 +177,10 @@ namespace Microsoft.Samples.AzureQueueStorage
         /// <summary>
         /// Implementation of async send for Udp. 
         /// </summary>
-        class SendAsyncResult : AsyncResult
+        private class SendAsyncResult : AsyncResult
         {
-            ArraySegment<byte> messageBuffer;
-            AzureQueueStorageOutputChannel channel;
+            private ArraySegment<byte> messageBuffer;
+            private AzureQueueStorageOutputChannel channel;
 
             public SendAsyncResult(AzureQueueStorageOutputChannel channel, Message message, AsyncCallback callback, object state)
                 : base(callback, state)
@@ -211,7 +211,7 @@ namespace Microsoft.Samples.AzureQueueStorage
                 }
             }
 
-            void CleanupBuffer()
+            private void CleanupBuffer()
             {
                 if (messageBuffer.Array != null)
                 {
@@ -220,7 +220,7 @@ namespace Microsoft.Samples.AzureQueueStorage
                 }
             }
 
-            void CompleteSend(IAsyncResult result, bool synchronous)
+            private void CompleteSend(IAsyncResult result, bool synchronous)
             {
                 try
                 {
@@ -238,7 +238,7 @@ namespace Microsoft.Samples.AzureQueueStorage
                 base.Complete(synchronous);
             }
 
-            void OnSend(IAsyncResult result)
+            private void OnSend(IAsyncResult result)
             {
                 if (result.CompletedSynchronously)
                     return;

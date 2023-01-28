@@ -16,7 +16,7 @@ namespace Microsoft.Samples.AzureQueueStorage
     // not notified of the item being available until the callback returns.  If you
     // are not sure if the callback blocks for a long time, then first call 
     // IOThreadScheduler.ScheduleCallback to get to a "safe" thread.
-    delegate void ItemDequeuedCallback();
+    internal delegate void ItemDequeuedCallback();
 
     /// <summary>
     /// Handles asynchronous interactions between producers and consumers. 
@@ -27,31 +27,31 @@ namespace Microsoft.Samples.AzureQueueStorage
     /// available.
     /// </summary>
     /// <typeparam name="T">The concrete type of the consumer objects that are waiting for data.</typeparam>
-    class InputQueue<T> : IDisposable where T : class
+    internal class InputQueue<T> : IDisposable where T : class
     {
         //Stores items that are waiting to be accessed.
-        ItemQueue itemQueue;
+        private ItemQueue itemQueue;
 
         //Each IQueueReader represents some consumer that is waiting for
         //items to appear in the queue. The readerQueue stores them
         //in an ordered list so consumers get serviced in a FIFO manner.
-        Queue<IQueueReader> readerQueue;
+        private Queue<IQueueReader> readerQueue;
 
         //Each IQueueWaiter represents some waiter that is waiting for
         //items to appear in the queue.  When any item appears, all
         //waiters are signaled.
-        List<IQueueWaiter> waiterList;
-
-        static WaitCallback onInvokeDequeuedCallback;
-        static WaitCallback onDispatchCallback;
-        static WaitCallback completeOutstandingReadersCallback;
-        static WaitCallback completeWaitersFalseCallback;
-        static WaitCallback completeWaitersTrueCallback;
+        private List<IQueueWaiter> waiterList;
+        private static WaitCallback onInvokeDequeuedCallback;
+        private static WaitCallback onDispatchCallback;
+        private static WaitCallback completeOutstandingReadersCallback;
+        private static WaitCallback completeWaitersFalseCallback;
+        private static WaitCallback completeWaitersTrueCallback;
 
         //Represents the current state of the InputQueue.
         //as it transitions through its lifecycle.
-        QueueState queueState;
-        enum QueueState
+        private QueueState queueState;
+
+        private enum QueueState
         {
             Open,
             Shutdown,
@@ -77,7 +77,7 @@ namespace Microsoft.Samples.AzureQueueStorage
             }
         }
 
-        object ThisLock
+        private object ThisLock
         {
             get { return itemQueue; }
         }
@@ -147,7 +147,7 @@ namespace Microsoft.Samples.AzureQueueStorage
             return new TypedCompletedAsyncResult<bool>(true, callback, state);
         }
 
-        static void CompleteOutstandingReadersCallback(object state)
+        private static void CompleteOutstandingReadersCallback(object state)
         {
             IQueueReader[] outstandingReaders = (IQueueReader[])state;
 
@@ -157,17 +157,17 @@ namespace Microsoft.Samples.AzureQueueStorage
             }
         }
 
-        static void CompleteWaitersFalseCallback(object state)
+        private static void CompleteWaitersFalseCallback(object state)
         {
             CompleteWaiters(false, (IQueueWaiter[])state);
         }
 
-        static void CompleteWaitersTrueCallback(object state)
+        private static void CompleteWaitersTrueCallback(object state)
         {
             CompleteWaiters(true, (IQueueWaiter[])state);
         }
 
-        static void CompleteWaiters(bool itemAvailable, IQueueWaiter[] waiters)
+        private static void CompleteWaiters(bool itemAvailable, IQueueWaiter[] waiters)
         {
             for (int i=0; i<waiters.Length; i++)
             {
@@ -175,7 +175,7 @@ namespace Microsoft.Samples.AzureQueueStorage
             }
         }
 
-        static void CompleteWaitersLater(bool itemAvailable, IQueueWaiter[] waiters)
+        private static void CompleteWaitersLater(bool itemAvailable, IQueueWaiter[] waiters)
         {
             if (itemAvailable)
             {
@@ -193,7 +193,7 @@ namespace Microsoft.Samples.AzureQueueStorage
             }
         }
 
-        void GetWaiters(out IQueueWaiter[] waiters)
+        private void GetWaiters(out IQueueWaiter[] waiters)
         {
             if (waiterList.Count > 0)
             {
@@ -461,7 +461,7 @@ namespace Microsoft.Samples.AzureQueueStorage
             EnqueueAndDispatch(new Item(item, dequeuedCallback), canDispatchOnThisThread);
         }
 
-        void EnqueueAndDispatch(Item item, bool canDispatchOnThisThread)
+        private void EnqueueAndDispatch(Item item, bool canDispatchOnThisThread)
         {
             bool disposeItem = false;
             IQueueReader reader = null;
@@ -554,7 +554,7 @@ namespace Microsoft.Samples.AzureQueueStorage
 
         // This does not block, however, Dispatch() must be called later if this function
         // returns true.
-        bool EnqueueWithoutDispatch(Item item)
+        private bool EnqueueWithoutDispatch(Item item)
         {
             lock (ThisLock)
             {
@@ -579,12 +579,12 @@ namespace Microsoft.Samples.AzureQueueStorage
             return false;
         }
 
-        static void OnDispatchCallback(object state)
+        private static void OnDispatchCallback(object state)
         {
             ((InputQueue<T>)state).Dispatch();
         }
 
-        static void InvokeDequeuedCallbackLater(ItemDequeuedCallback dequeuedCallback)
+        private static void InvokeDequeuedCallbackLater(ItemDequeuedCallback dequeuedCallback)
         {
             if (dequeuedCallback != null)
             {
@@ -597,7 +597,7 @@ namespace Microsoft.Samples.AzureQueueStorage
             }
         }
 
-        static void InvokeDequeuedCallback(ItemDequeuedCallback dequeuedCallback)
+        private static void InvokeDequeuedCallback(ItemDequeuedCallback dequeuedCallback)
         {
             if (dequeuedCallback != null)
             {
@@ -605,13 +605,13 @@ namespace Microsoft.Samples.AzureQueueStorage
             }
         }
 
-        static void OnInvokeDequeuedCallback(object state)
+        private static void OnInvokeDequeuedCallback(object state)
         {
             ItemDequeuedCallback dequeuedCallback = (ItemDequeuedCallback)state;
             dequeuedCallback();
         }
 
-        bool RemoveReader(IQueueReader reader)
+        private bool RemoveReader(IQueueReader reader)
         {
             lock (ThisLock)
             {
@@ -690,23 +690,23 @@ namespace Microsoft.Samples.AzureQueueStorage
             }
         }
 
-        interface IQueueReader
+        private interface IQueueReader
         {
             void Set(Item item);
         }
 
-        interface IQueueWaiter
+        private interface IQueueWaiter
         {
             void Set(bool itemAvailable);
         }
 
-        class WaitQueueReader : IQueueReader
+        private class WaitQueueReader : IQueueReader
         {
-            Exception exception;
-            InputQueue<T> inputQueue;
-            T item;
-            ManualResetEvent waitEvent;
-            object thisLock = new object();
+            private Exception exception;
+            private InputQueue<T> inputQueue;
+            private T item;
+            private ManualResetEvent waitEvent;
+            private object thisLock = new object();
 
             public WaitQueueReader(InputQueue<T> inputQueue)
             {
@@ -714,7 +714,7 @@ namespace Microsoft.Samples.AzureQueueStorage
                 waitEvent = new ManualResetEvent(false);
             }
 
-            object ThisLock
+            private object ThisLock
             {
                 get
                 {
@@ -773,14 +773,13 @@ namespace Microsoft.Samples.AzureQueueStorage
             }
         }
 
-        class AsyncQueueReader : AsyncResult, IQueueReader
+        private class AsyncQueueReader : AsyncResult, IQueueReader
         {
-            static TimerCallback timerCallback = new TimerCallback(AsyncQueueReader.TimerCallback);
-
-            bool expired;
-            InputQueue<T> inputQueue;
-            T item;
-            Timer timer;
+            private static TimerCallback timerCallback = new TimerCallback(AsyncQueueReader.TimerCallback);
+            private bool expired;
+            private InputQueue<T> inputQueue;
+            private T item;
+            private Timer timer;
 
             public AsyncQueueReader(InputQueue<T> inputQueue, TimeSpan timeout, AsyncCallback callback, object state)
                 : base(callback, state)
@@ -808,7 +807,7 @@ namespace Microsoft.Samples.AzureQueueStorage
                 }
             }
 
-            static void TimerCallback(object state)
+            private static void TimerCallback(object state)
             {
                 AsyncQueueReader thisPtr = (AsyncQueueReader)state;
                 if (thisPtr.inputQueue.RemoveReader(thisPtr))
@@ -829,11 +828,11 @@ namespace Microsoft.Samples.AzureQueueStorage
             }
         }
 
-        struct Item
+        private struct Item
         {
-            T value;
-            Exception exception;
-            ItemDequeuedCallback dequeuedCallback;
+            private T value;
+            private Exception exception;
+            private ItemDequeuedCallback dequeuedCallback;
 
             public Item(T value, ItemDequeuedCallback dequeuedCallback)
                 : this(value, null, dequeuedCallback)
@@ -845,7 +844,7 @@ namespace Microsoft.Samples.AzureQueueStorage
             {
             }
 
-            Item(T value, Exception exception, ItemDequeuedCallback dequeuedCallback)
+            private Item(T value, Exception exception, ItemDequeuedCallback dequeuedCallback)
             {
                 this.value = value;
                 this.exception = exception;
@@ -893,18 +892,18 @@ namespace Microsoft.Samples.AzureQueueStorage
             }
         }
 
-        class WaitQueueWaiter : IQueueWaiter
+        private class WaitQueueWaiter : IQueueWaiter
         {
-            bool itemAvailable;
-            ManualResetEvent waitEvent;
-            object thisLock = new object();
+            private bool itemAvailable;
+            private ManualResetEvent waitEvent;
+            private object thisLock = new object();
 
             public WaitQueueWaiter()
             {
                 waitEvent = new ManualResetEvent(false);
             }
 
-            object ThisLock
+            private object ThisLock
             {
                 get
                 {
@@ -936,12 +935,12 @@ namespace Microsoft.Samples.AzureQueueStorage
             }
         }
 
-        class AsyncQueueWaiter : AsyncResult, IQueueWaiter
+        private class AsyncQueueWaiter : AsyncResult, IQueueWaiter
         {
-            static TimerCallback timerCallback = new TimerCallback(AsyncQueueWaiter.TimerCallback);
-            Timer timer;
-            bool itemAvailable;
-            object thisLock = new object();
+            private static TimerCallback timerCallback = new TimerCallback(AsyncQueueWaiter.TimerCallback);
+            private Timer timer;
+            private bool itemAvailable;
+            private object thisLock = new object();
 
             public AsyncQueueWaiter(TimeSpan timeout, AsyncCallback callback, object state) : base(callback, state)
             {
@@ -951,7 +950,7 @@ namespace Microsoft.Samples.AzureQueueStorage
                 }
             }
 
-            object ThisLock
+            private object ThisLock
             {
                 get
                 {
@@ -965,7 +964,7 @@ namespace Microsoft.Samples.AzureQueueStorage
                 return waiterResult.itemAvailable;
             }
 
-            static void TimerCallback(object state)
+            private static void TimerCallback(object state)
             {
                 AsyncQueueWaiter thisPtr = (AsyncQueueWaiter)state;
                 thisPtr.Complete(false);
@@ -988,12 +987,12 @@ namespace Microsoft.Samples.AzureQueueStorage
             }
         }
 
-        class ItemQueue
+        private class ItemQueue
         {
-            Item[] items;
-            int head;
-            int pendingCount;
-            int totalCount;
+            private Item[] items;
+            private int head;
+            private int pendingCount;
+            private int totalCount;
 
             public ItemQueue()
             {
@@ -1017,7 +1016,7 @@ namespace Microsoft.Samples.AzureQueueStorage
                 return DequeueItemCore();
             }
 
-            void EnqueueItemCore(Item item)
+            private void EnqueueItemCore(Item item)
             {
                 if (totalCount == items.Length)
                 {
@@ -1032,7 +1031,7 @@ namespace Microsoft.Samples.AzureQueueStorage
                 totalCount++;
             }
 
-            Item DequeueItemCore()
+            private Item DequeueItemCore()
             {
                 if (totalCount == 0)
                 {

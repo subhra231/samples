@@ -12,12 +12,12 @@ namespace Microsoft.Samples.AzureQueueStorage
     /// <summary>
     /// IChannelFactory implementation for AzureQueueStorage.
     /// </summary>
-    class AzureQueueStorageChannelFactory : ChannelFactoryBase<IOutputChannel>
+    internal class AzureQueueStorageChannelFactory : ChannelFactoryBase<IOutputChannel>
     {
         #region member_variables
-        BufferManager bufferManager;
-        MessageEncoderFactory messageEncoderFactory;
-        bool multicast;
+        private BufferManager bufferManager;
+        private MessageEncoderFactory messageEncoderFactory;
+        private bool multicast;
         #endregion
 
         /*internal UdpChannelFactory(UdpTransportBindingElement bindingElement, BindingContext context)

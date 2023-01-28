@@ -20,13 +20,13 @@ namespace Microsoft.Samples.AzureQueueStorage
     /// </summary>
     public class SampleProfileAzureQueueStorageBinding : Binding
     {
-        bool reliableSessionEnabled;
+        private bool reliableSessionEnabled;
 
         // private BindingElements
         //CompositeDuplexBindingElement compositeDuplex;
-        ReliableSessionBindingElement session;
-        AzureQueueStorageTransportBindingElement transport;
-        MessageEncodingBindingElement encoding;
+        private ReliableSessionBindingElement session;
+        private AzureQueueStorageTransportBindingElement transport;
+        private MessageEncodingBindingElement encoding;
 
         public SampleProfileAzureQueueStorageBinding()
         {
@@ -95,22 +95,22 @@ namespace Microsoft.Samples.AzureQueueStorage
             return bindingElements.Clone();
         }
 
-       /* void ApplyConfiguration(string configurationName)
-        {
-            SampleProfileUdpBindingCollectionElement section = (SampleProfileUdpBindingCollectionElement)ConfigurationManager.GetSection(UdpConstants.UdpBindingSectionName);
-            SampleProfileUdpBindingConfigurationElement element = section.Bindings[configurationName];
-            if (element == null)
-            {
-                throw new ConfigurationErrorsException(string.Format(System.Globalization.CultureInfo.CurrentCulture,
-                    "There is no binding named {0} at {1}.", configurationName, section.BindingName));
-            }
-            else
-            {
-                element.ApplyConfiguration(this);
-            }
-        }*/
+        /* void ApplyConfiguration(string configurationName)
+         {
+             SampleProfileUdpBindingCollectionElement section = (SampleProfileUdpBindingCollectionElement)ConfigurationManager.GetSection(UdpConstants.UdpBindingSectionName);
+             SampleProfileUdpBindingConfigurationElement element = section.Bindings[configurationName];
+             if (element == null)
+             {
+                 throw new ConfigurationErrorsException(string.Format(System.Globalization.CultureInfo.CurrentCulture,
+                     "There is no binding named {0} at {1}.", configurationName, section.BindingName));
+             }
+             else
+             {
+                 element.ApplyConfiguration(this);
+             }
+         }*/
 
-        void Initialize()
+        private void Initialize()
         {
             transport = new AzureQueueStorageTransportBindingElement();
             session = new ReliableSessionBindingElement();
@@ -119,7 +119,7 @@ namespace Microsoft.Samples.AzureQueueStorage
         }
 
         //initialize a SampleProfileUdpBinding from the info collected in a ReliableSessionBindingElement if one is present.
-        void InitializeFrom(AzureQueueStorageTransportBindingElement udpTransportBindingElement,
+        private void InitializeFrom(AzureQueueStorageTransportBindingElement udpTransportBindingElement,
                     TextMessageEncodingBindingElement textMessageEncodingBindingElement,
                     ReliableSessionBindingElement reliableSessionBindingElement)
                     //CompositeDuplexBindingElement compositeDuplexBindingElement)
@@ -212,7 +212,7 @@ namespace Microsoft.Samples.AzureQueueStorage
             return true;
         }
 
-        bool IsBindingElementsMatch(AzureQueueStorageTransportBindingElement udpTransportBindingElement,
+        private bool IsBindingElementsMatch(AzureQueueStorageTransportBindingElement udpTransportBindingElement,
                     TextMessageEncodingBindingElement textMessageEncodingBindingElement,
                     ReliableSessionBindingElement reliableSessionBindingElement)
                     //CompositeDuplexBindingElement compositeDuplexBindingElement)
@@ -253,7 +253,7 @@ namespace Microsoft.Samples.AzureQueueStorage
             return true;
         }
 
-        bool IsTransportMatch(BindingElement a, BindingElement b)
+        private bool IsTransportMatch(BindingElement a, BindingElement b)
         {
             if (b == null)
             {
@@ -283,7 +283,7 @@ namespace Microsoft.Samples.AzureQueueStorage
             return true;
         }
 
-        bool IsEncodingMatch(BindingElement a, BindingElement b)
+        private bool IsEncodingMatch(BindingElement a, BindingElement b)
         {
             if (b == null)
             {
@@ -345,7 +345,7 @@ namespace Microsoft.Samples.AzureQueueStorage
             return true;
         }
 
-        bool IsMessageVersionMatch(MessageVersion a, MessageVersion b)
+        private bool IsMessageVersionMatch(MessageVersion a, MessageVersion b)
         {
             if (b == null)
             {
@@ -368,7 +368,7 @@ namespace Microsoft.Samples.AzureQueueStorage
             return true;
         }
 
-        bool IsSessionMatch(BindingElement a, BindingElement b)
+        private bool IsSessionMatch(BindingElement a, BindingElement b)
         {
             if (b == null)
             {
