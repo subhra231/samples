@@ -12,7 +12,7 @@ using System.ServiceModel.Channels;
 using Azure.Storage.Queues;
 using Azure.Storage.Queues.Models;
 
-namespace Microsoft.Samples.AzureQueueStorage
+namespace Microsoft.ServiceModel.AQS
 {
     /// <summary>
     /// IOutputChannel implementation for AzureQueueStorage.

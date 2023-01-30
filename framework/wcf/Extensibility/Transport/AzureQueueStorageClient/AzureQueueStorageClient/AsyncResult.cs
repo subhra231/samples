@@ -6,7 +6,7 @@ using System;
 using System.Diagnostics;
 using System.Threading;
 
-namespace Microsoft.Samples.AzureQueueStorage
+namespace Microsoft.ServiceModel.AQS
 {
     /// <summary>
     /// A generic base class for IAsyncResult implementations

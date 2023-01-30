@@ -6,7 +6,7 @@ using System;
 using System.ServiceModel.Channels;
 using System.Xml;
 
-namespace Microsoft.Samples.AzureQueueStorage
+namespace Microsoft.ServiceModel.AQS
 {
     /// <summary>
     /// AzureQueueStorage Binding Element.  

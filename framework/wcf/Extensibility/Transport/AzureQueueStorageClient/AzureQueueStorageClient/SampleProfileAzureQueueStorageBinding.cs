@@ -9,7 +9,7 @@ using System.Configuration;
 using System.ServiceModel;
 using System.ServiceModel.Channels;
 
-namespace Microsoft.Samples.AzureQueueStorage
+namespace Microsoft.ServiceModel.AQS
 {
 
     /// <summary>

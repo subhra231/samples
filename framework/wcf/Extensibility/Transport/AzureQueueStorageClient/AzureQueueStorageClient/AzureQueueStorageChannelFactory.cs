@@ -7,7 +7,7 @@ using System.Collections.ObjectModel;
 using System.ServiceModel;
 using System.ServiceModel.Channels;
 
-namespace Microsoft.Samples.AzureQueueStorage
+namespace Microsoft.ServiceModel.AQS
 {
     /// <summary>
     /// IChannelFactory implementation for AzureQueueStorage.
@@ -59,14 +59,6 @@ namespace Microsoft.Samples.AzureQueueStorage
             }
         }
 
-        public bool Multicast
-        {
-            get
-            {
-                return this.multicast;
-            }
-        }
-
         public override T GetProperty<T>()
         {
             T messageEncoderProperty = this.MessageEncoderFactory.Encoder.GetProperty<T>();
@@ -98,7 +90,7 @@ namespace Microsoft.Samples.AzureQueueStorage
         }
 
         /// <summary>
-        /// Create a new Udp Channel. Supports IOutputChannel.
+        /// Create a new Azure Queue Storage Channel. Supports IOutputChannel.
         /// </summary>
         /// <typeparam name="TChannel">The type of Channel to create (e.g. IOutputChannel)</typeparam>
         /// <param name="remoteAddress">The address of the remote endpoint</param>
