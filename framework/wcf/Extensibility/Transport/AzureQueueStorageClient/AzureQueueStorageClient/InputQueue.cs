@@ -30,22 +30,22 @@ namespace Microsoft.ServiceModel.AQS
     internal class InputQueue<T> : IDisposable where T : class
     {
         //Stores items that are waiting to be accessed.
-        private ItemQueue itemQueue;
+        private ItemQueue _itemQueue;
 
         //Each IQueueReader represents some consumer that is waiting for
         //items to appear in the queue. The readerQueue stores them
         //in an ordered list so consumers get serviced in a FIFO manner.
-        private Queue<IQueueReader> readerQueue;
+        private Queue<IQueueReader> _readerQueue;
 
         //Each IQueueWaiter represents some waiter that is waiting for
         //items to appear in the queue.  When any item appears, all
         //waiters are signaled.
-        private List<IQueueWaiter> waiterList;
-        private static WaitCallback onInvokeDequeuedCallback;
-        private static WaitCallback onDispatchCallback;
-        private static WaitCallback completeOutstandingReadersCallback;
-        private static WaitCallback completeWaitersFalseCallback;
-        private static WaitCallback completeWaitersTrueCallback;
+        private List<IQueueWaiter> _waiterList;
+        private static WaitCallback s_onInvokeDequeuedCallback;
+        private static WaitCallback s_onDispatchCallback;
+        private static WaitCallback s_completeOutstandingReadersCallback;
+        private static WaitCallback s_completeWaitersFalseCallback;
+        private static WaitCallback s_completeWaitersTrueCallback;
 
         //Represents the current state of the InputQueue.
         //as it transitions through its lifecycle.
@@ -60,9 +60,9 @@ namespace Microsoft.ServiceModel.AQS
 
         public InputQueue()
         {
-            this.itemQueue = new ItemQueue();
-            this.readerQueue = new Queue<IQueueReader>();
-            this.waiterList = new List<IQueueWaiter>();
+            this._itemQueue = new ItemQueue();
+            this._readerQueue = new Queue<IQueueReader>();
+            this._waiterList = new List<IQueueWaiter>();
             this.queueState = QueueState.Open;
         }
 
@@ -72,14 +72,14 @@ namespace Microsoft.ServiceModel.AQS
             {
                 lock (ThisLock)
                 {                    
-                    return itemQueue.ItemCount;
+                    return _itemQueue.ItemCount;
                 }
             }
         }
 
         private object ThisLock
         {
-            get { return itemQueue; }
+            get { return _itemQueue; }
         }
 
         public IAsyncResult BeginDequeue(TimeSpan timeout, AsyncCallback callback, object state)
@@ -90,27 +90,27 @@ namespace Microsoft.ServiceModel.AQS
             {
                 if (queueState == QueueState.Open)
                 {
-                    if (itemQueue.HasAvailableItem)
+                    if (_itemQueue.HasAvailableItem)
                     {
-                        item = itemQueue.DequeueAvailableItem();
+                        item = _itemQueue.DequeueAvailableItem();
                     }
                     else
                     {
                         AsyncQueueReader reader = new AsyncQueueReader(this, timeout, callback, state);
-                        readerQueue.Enqueue(reader);
+                        _readerQueue.Enqueue(reader);
                         return reader;
                     }
                 }
                 else if (queueState == QueueState.Shutdown)
                 {
-                    if (itemQueue.HasAvailableItem)
+                    if (_itemQueue.HasAvailableItem)
                     {
-                        item = itemQueue.DequeueAvailableItem();
+                        item = _itemQueue.DequeueAvailableItem();
                     }
-                    else if (itemQueue.HasAnyItem)
+                    else if (_itemQueue.HasAnyItem)
                     {
                         AsyncQueueReader reader = new AsyncQueueReader(this, timeout, callback, state);
-                        readerQueue.Enqueue(reader);
+                        _readerQueue.Enqueue(reader);
                         return reader;
                     }
                 }
@@ -126,19 +126,19 @@ namespace Microsoft.ServiceModel.AQS
             {
                 if (queueState == QueueState.Open)
                 {
-                    if (!itemQueue.HasAvailableItem)
+                    if (!_itemQueue.HasAvailableItem)
                     {
                         AsyncQueueWaiter waiter = new AsyncQueueWaiter(timeout, callback, state);
-                        waiterList.Add(waiter);
+                        _waiterList.Add(waiter);
                         return waiter;
                     }
                 }
                 else if (queueState == QueueState.Shutdown)
                 {
-                    if (!itemQueue.HasAvailableItem && itemQueue.HasAnyItem)
+                    if (!_itemQueue.HasAvailableItem && _itemQueue.HasAnyItem)
                     {
                         AsyncQueueWaiter waiter = new AsyncQueueWaiter(timeout, callback, state);
-                        waiterList.Add(waiter);
+                        _waiterList.Add(waiter);
                         return waiter;
                     }
                 }
@@ -179,26 +179,26 @@ namespace Microsoft.ServiceModel.AQS
         {
             if (itemAvailable)
             {
-                if (completeWaitersTrueCallback == null)
-                    completeWaitersTrueCallback = new WaitCallback(CompleteWaitersTrueCallback);
+                if (s_completeWaitersTrueCallback == null)
+                    s_completeWaitersTrueCallback = new WaitCallback(CompleteWaitersTrueCallback);
 
-                ThreadPool.QueueUserWorkItem(completeWaitersTrueCallback, waiters);
+                ThreadPool.QueueUserWorkItem(s_completeWaitersTrueCallback, waiters);
             }
             else
             {
-                if (completeWaitersFalseCallback == null)
-                    completeWaitersFalseCallback = new WaitCallback(CompleteWaitersFalseCallback);
+                if (s_completeWaitersFalseCallback == null)
+                    s_completeWaitersFalseCallback = new WaitCallback(CompleteWaitersFalseCallback);
 
-                ThreadPool.QueueUserWorkItem(completeWaitersFalseCallback, waiters);
+                ThreadPool.QueueUserWorkItem(s_completeWaitersFalseCallback, waiters);
             }
         }
 
         private void GetWaiters(out IQueueWaiter[] waiters)
         {
-            if (waiterList.Count > 0)
+            if (_waiterList.Count > 0)
             {
-                waiters = waiterList.ToArray();
-                waiterList.Clear();
+                waiters = _waiterList.ToArray();
+                _waiterList.Clear();
             }
             else
             {
@@ -224,11 +224,11 @@ namespace Microsoft.ServiceModel.AQS
 
                 this.queueState = QueueState.Shutdown;
 
-                if (readerQueue.Count > 0 && this.itemQueue.ItemCount == 0)
+                if (_readerQueue.Count > 0 && this._itemQueue.ItemCount == 0)
                 {
-                    outstandingReaders = new IQueueReader[readerQueue.Count];
-                    readerQueue.CopyTo(outstandingReaders, 0);
-                    readerQueue.Clear();
+                    outstandingReaders = new IQueueReader[_readerQueue.Count];
+                    _readerQueue.CopyTo(outstandingReaders, 0);
+                    _readerQueue.Clear();
                 }
             }
 
@@ -262,26 +262,26 @@ namespace Microsoft.ServiceModel.AQS
             {
                 if (queueState == QueueState.Open)
                 {
-                    if (itemQueue.HasAvailableItem)
+                    if (_itemQueue.HasAvailableItem)
                     {
-                        item = itemQueue.DequeueAvailableItem();
+                        item = _itemQueue.DequeueAvailableItem();
                     }
                     else
                     {
                         reader = new WaitQueueReader(this);
-                        readerQueue.Enqueue(reader);
+                        _readerQueue.Enqueue(reader);
                     }
                 }
                 else if (queueState == QueueState.Shutdown)
                 {
-                    if (itemQueue.HasAvailableItem)
+                    if (_itemQueue.HasAvailableItem)
                     {
-                        item = itemQueue.DequeueAvailableItem();
+                        item = _itemQueue.DequeueAvailableItem();
                     }
-                    else if (itemQueue.HasAnyItem)
+                    else if (_itemQueue.HasAnyItem)
                     {
                         reader = new WaitQueueReader(this);
-                        readerQueue.Enqueue(reader);
+                        _readerQueue.Enqueue(reader);
                     }
                     else
                     {
@@ -332,15 +332,15 @@ namespace Microsoft.ServiceModel.AQS
 
                 if (dispose)
                 {
-                    while (readerQueue.Count > 0)
+                    while (_readerQueue.Count > 0)
                     {
-                        IQueueReader reader = readerQueue.Dequeue();
+                        IQueueReader reader = _readerQueue.Dequeue();
                         reader.Set(default(Item));
                     }
 
-                    while (itemQueue.HasAnyItem)
+                    while (_itemQueue.HasAnyItem)
                     {
-                        Item item = itemQueue.DequeueAnyItem();
+                        Item item = _itemQueue.DequeueAnyItem();
                         item.Dispose();
                         InvokeDequeuedCallback(item.DequeuedCallback);
                     }
@@ -363,18 +363,18 @@ namespace Microsoft.ServiceModel.AQS
 
                 if (queueState != QueueState.Closed)
                 {
-                    itemQueue.MakePendingItemAvailable();
+                    _itemQueue.MakePendingItemAvailable();
 
-                    if (readerQueue.Count > 0)
+                    if (_readerQueue.Count > 0)
                     {
-                        item = itemQueue.DequeueAvailableItem();
-                        reader = readerQueue.Dequeue();
+                        item = _itemQueue.DequeueAvailableItem();
+                        reader = _readerQueue.Dequeue();
 
-                        if (queueState == QueueState.Shutdown && readerQueue.Count > 0 && itemQueue.ItemCount == 0)
+                        if (queueState == QueueState.Shutdown && _readerQueue.Count > 0 && _itemQueue.ItemCount == 0)
                         {
-                            outstandingReaders = new IQueueReader[readerQueue.Count];
-                            readerQueue.CopyTo(outstandingReaders, 0);
-                            readerQueue.Clear();
+                            outstandingReaders = new IQueueReader[_readerQueue.Count];
+                            _readerQueue.CopyTo(outstandingReaders, 0);
+                            _readerQueue.Clear();
 
                             itemAvailable = false;
                         }
@@ -384,10 +384,10 @@ namespace Microsoft.ServiceModel.AQS
 
             if (outstandingReaders != null)
             {
-                if (completeOutstandingReadersCallback == null)
-                    completeOutstandingReadersCallback = new WaitCallback(CompleteOutstandingReadersCallback);
+                if (s_completeOutstandingReadersCallback == null)
+                    s_completeOutstandingReadersCallback = new WaitCallback(CompleteOutstandingReadersCallback);
 
-                ThreadPool.QueueUserWorkItem(completeOutstandingReadersCallback, outstandingReaders);
+                ThreadPool.QueueUserWorkItem(s_completeOutstandingReadersCallback, outstandingReaders);
             }
 
             if (waiters != null)
@@ -478,24 +478,24 @@ namespace Microsoft.ServiceModel.AQS
                 {
                     if (canDispatchOnThisThread)
                     {
-                        if (readerQueue.Count == 0)
+                        if (_readerQueue.Count == 0)
                         {
-                            itemQueue.EnqueueAvailableItem(item);
+                            _itemQueue.EnqueueAvailableItem(item);
                         }
                         else
                         {
-                            reader = readerQueue.Dequeue();
+                            reader = _readerQueue.Dequeue();
                         }
                     }
                     else
                     {
-                        if (readerQueue.Count == 0)
+                        if (_readerQueue.Count == 0)
                         {
-                            itemQueue.EnqueueAvailableItem(item);
+                            _itemQueue.EnqueueAvailableItem(item);
                         }
                         else
                         {
-                            itemQueue.EnqueuePendingItem(item);
+                            _itemQueue.EnqueuePendingItem(item);
                             dispatchLater = true;
                         }
                     }
@@ -526,12 +526,12 @@ namespace Microsoft.ServiceModel.AQS
 
             if (dispatchLater)
             {
-                if (onDispatchCallback == null)
+                if (s_onDispatchCallback == null)
                 {
-                    onDispatchCallback = new WaitCallback(OnDispatchCallback);
+                    s_onDispatchCallback = new WaitCallback(OnDispatchCallback);
                 }
 
-                ThreadPool.QueueUserWorkItem(onDispatchCallback, this);
+                ThreadPool.QueueUserWorkItem(s_onDispatchCallback, this);
             }
             else if (disposeItem)
             {
@@ -561,14 +561,14 @@ namespace Microsoft.ServiceModel.AQS
                 // Open
                 if (queueState != QueueState.Closed && queueState != QueueState.Shutdown)
                 {
-                    if (readerQueue.Count == 0)
+                    if (_readerQueue.Count == 0)
                     {
-                        itemQueue.EnqueueAvailableItem(item);
+                        _itemQueue.EnqueueAvailableItem(item);
                         return false;
                     }
                     else
                     {
-                        itemQueue.EnqueuePendingItem(item);
+                        _itemQueue.EnqueuePendingItem(item);
                         return true;
                     }
                 }
@@ -588,12 +588,12 @@ namespace Microsoft.ServiceModel.AQS
         {
             if (dequeuedCallback != null)
             {
-                if (onInvokeDequeuedCallback == null)
+                if (s_onInvokeDequeuedCallback == null)
                 {
-                    onInvokeDequeuedCallback = OnInvokeDequeuedCallback;
+                    s_onInvokeDequeuedCallback = OnInvokeDequeuedCallback;
                 }
 
-                ThreadPool.QueueUserWorkItem(onInvokeDequeuedCallback, dequeuedCallback);
+                ThreadPool.QueueUserWorkItem(s_onInvokeDequeuedCallback, dequeuedCallback);
             }
         }
 
@@ -619,16 +619,16 @@ namespace Microsoft.ServiceModel.AQS
                 {
                     bool removed = false;
 
-                    for (int i = readerQueue.Count; i > 0; i--)
+                    for (int i = _readerQueue.Count; i > 0; i--)
                     {
-                        IQueueReader temp = readerQueue.Dequeue();
+                        IQueueReader temp = _readerQueue.Dequeue();
                         if (Object.ReferenceEquals(temp, reader))
                         {
                             removed = true;
                         }
                         else
                         {
-                            readerQueue.Enqueue(temp);
+                            _readerQueue.Enqueue(temp);
                         }
                     }
 
@@ -648,26 +648,26 @@ namespace Microsoft.ServiceModel.AQS
             {
                 if (queueState == QueueState.Open)
                 {
-                    if (itemQueue.HasAvailableItem)
+                    if (_itemQueue.HasAvailableItem)
                     {
                         itemAvailable = true;
                     }
                     else
                     {
                         waiter = new WaitQueueWaiter();
-                        waiterList.Add(waiter);
+                        _waiterList.Add(waiter);
                     }
                 }
                 else if (queueState == QueueState.Shutdown)
                 {
-                    if (itemQueue.HasAvailableItem)
+                    if (_itemQueue.HasAvailableItem)
                     {
                         itemAvailable = true;
                     }
-                    else if (itemQueue.HasAnyItem)
+                    else if (_itemQueue.HasAnyItem)
                     {
                         waiter = new WaitQueueWaiter();
-                        waiterList.Add(waiter);
+                        _waiterList.Add(waiter);
                     }
                     else
                     {

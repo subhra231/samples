@@ -15,18 +15,16 @@ namespace Microsoft.ServiceModel.AQS
     internal class AzureQueueStorageChannelFactory : ChannelFactoryBase<IOutputChannel>
     {
         #region member_variables
-        private BufferManager bufferManager;
-        private MessageEncoderFactory messageEncoderFactory;
-        private bool multicast;
+        private BufferManager _bufferManager;
+        private MessageEncoderFactory _messageEncoderFactory;
         #endregion
 
-        /*internal UdpChannelFactory(UdpTransportBindingElement bindingElement, BindingContext context)
+        internal AzureQueueStorageChannelFactory(AzureQueueStorageTransportBindingElement bindingElement, BindingContext context)
             : base(context.Binding)
         {
-            this.multicast = bindingElement.Multicast;
-            this.bufferManager = BufferManager.CreateBufferManager(bindingElement.MaxBufferPoolSize, int.MaxValue);
+            this._bufferManager = BufferManager.CreateBufferManager(bindingElement.MaxBufferPoolSize, int.MaxValue);
 
-            Collection<MessageEncodingBindingElement> messageEncoderBindingElements
+           /* Collection<MessageEncodingBindingElement> messageEncoderBindingElements
                 = context.BindingParameters.FindAll<MessageEncodingBindingElement>();
 
             if(messageEncoderBindingElements.Count > 1)
@@ -40,14 +38,14 @@ namespace Microsoft.ServiceModel.AQS
             else
             {
                 this.messageEncoderFactory = UdpConstants.DefaultMessageEncoderFactory;
-            }
-        }*/
+            }*/
+        }
 
         public BufferManager BufferManager
         {
             get
             {
-                return this.bufferManager;
+                return this._bufferManager;
             }
         }
 
@@ -55,7 +53,7 @@ namespace Microsoft.ServiceModel.AQS
         {
             get
             {
-                return this.messageEncoderFactory;
+                return this._messageEncoderFactory;
             }
         }
 
@@ -103,7 +101,7 @@ namespace Microsoft.ServiceModel.AQS
         protected override void OnClosed()
         {
             base.OnClosed();
-            this.bufferManager.Clear();
+            this._bufferManager.Clear();
         }
     }
 }

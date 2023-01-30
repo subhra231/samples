@@ -16,15 +16,12 @@ namespace Microsoft.ServiceModel.AQS
     /// </summary>
     internal static class AzureQueueStorageConstants
     {
-        internal const string EventLogSourceName = "Microsoft.Samples.AzureQueueStorage";
+        internal const string EventLogSourceName = "Microsoft.ServiceModel.AQS";
         internal const string Scheme = "soap.aqs";
-        internal const string AzureQueueStorageBindingSectionName = "system.serviceModel/bindings/sampleProfileAzureQueueStorageBinding";
-        internal const string AzureQueueStorageTransportSectionName = "aqsTransport";
-        internal const int WSAETIMEDOUT = 10060;
-        private static MessageEncoderFactory messageEncoderFactory;
+        private static MessageEncoderFactory s_messageEncoderFactory;
         static AzureQueueStorageConstants()
         {
-            messageEncoderFactory = new TextMessageEncodingBindingElement().CreateMessageEncoderFactory();
+            s_messageEncoderFactory = new TextMessageEncodingBindingElement().CreateMessageEncoderFactory();
         }
 
         // ensure our advertised MessageVersion matches the version we're
@@ -33,7 +30,7 @@ namespace Microsoft.ServiceModel.AQS
         {
             get
             {
-                return messageEncoderFactory.MessageVersion;
+                return s_messageEncoderFactory.MessageVersion;
             }
         }
 
@@ -42,7 +39,7 @@ namespace Microsoft.ServiceModel.AQS
        {
             get
             {
-                return messageEncoderFactory;
+                return s_messageEncoderFactory;
             }
         }
     }
@@ -73,27 +70,12 @@ namespace Microsoft.ServiceModel.AQS
         /// into subclasses of CommunicationException, so that Channels can be used polymorphically from
         /// an exception handling perspective.
         /// </summary>
-        internal static CommunicationException ConvertTransferException(SocketException socketException)
+        internal static CommunicationException ConvertTransferException(Exception e)
         {
             return new CommunicationException(
                 string.Format(CultureInfo.CurrentCulture, 
-                "A Udp error ({0}: {1}) occurred while transmitting data.", socketException.ErrorCode, socketException.Message), 
-                socketException);
-        }
-
-        internal static bool IsInMulticastRange(IPAddress address)
-        {
-            if (address.AddressFamily == AddressFamily.InterNetwork)
-            {
-                // 224.0.0.0 through 239.255.255.255
-                byte[] addressBytes = address.GetAddressBytes();
-                return ((addressBytes[0] & 0xE0) == 0xE0);
-                //(address.Address & MulticastIPAddress.IPv4MulticastMask) == MulticastIPAddress.IPv4MulticastMask);
-            }
-            else
-            {
-                return address.IsIPv6Multicast;
-            }
+                "An error ({0}) occurred while transmitting message.", e.Message), 
+                e);
         }
 
         internal static void ValidateTimeout(TimeSpan timeout)
@@ -103,16 +85,6 @@ namespace Microsoft.ServiceModel.AQS
                 throw new ArgumentOutOfRangeException("timeout", timeout, "Timeout must be greater than or equal to TimeSpan.Zero. To disable timeout, specify TimeSpan.MaxValue.");
             }
         }
-    }
-
-    internal static class UdpDefaults
-    {
-        internal const long MaxBufferPoolSize = 64 * 1024;
-        internal const int MaxReceivedMessageSize = 5 * 1024 * 1024; //64 * 1024;
-        internal const bool Multicast = false;
-        internal const bool OrderedSession = true;
-        internal const bool ReliableSessionEnabled = true;
-        internal const string SessionInactivityTimeoutString = "00:10:00";
     }
 
     internal static class AddressingVersionConstants

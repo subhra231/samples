@@ -20,12 +20,11 @@ namespace Microsoft.ServiceModel.AQS
     internal class AzureQueueStorageOutputChannel : ChannelBase, IOutputChannel
     {
         #region member_variables
-        private EndpointAddress remoteAddress;
-        private Uri via;
-        private EndPoint remoteEndPoint;
-        private MessageEncoder encoder;
-        private AzureQueueStorageChannelFactory parent;
-        private QueueClient queueClient;
+        private EndpointAddress _remoteAddress;
+        private Uri _via;
+        private MessageEncoder _encoder;
+        private AzureQueueStorageChannelFactory _parent;
+        private QueueClient _queueClient;
         #endregion
 
         internal AzureQueueStorageOutputChannel(AzureQueueStorageChannelFactory factory, EndpointAddress remoteAddress, Uri via, MessageEncoder encoder)
@@ -39,7 +38,7 @@ namespace Microsoft.ServiceModel.AQS
         {
             get
             {
-                return this.remoteAddress;
+                return this._remoteAddress;
             }
         }
 
@@ -47,7 +46,7 @@ namespace Microsoft.ServiceModel.AQS
         {
             get
             {
-                return this.via;
+                return this._via;
             }
         }
         #endregion
@@ -59,7 +58,7 @@ namespace Microsoft.ServiceModel.AQS
                 return (T)(object)this;
             }
 
-            T messageEncoderProperty = this.encoder.GetProperty<T>();
+            T messageEncoderProperty = this._encoder.GetProperty<T>();
             if (messageEncoderProperty != null)
             {
                 return messageEncoderProperty;
@@ -123,8 +122,8 @@ namespace Microsoft.ServiceModel.AQS
         {
             try
             {
-                this.remoteAddress.ApplyTo(message);
-                return encoder.WriteMessage(message, int.MaxValue, parent.BufferManager);
+                this._remoteAddress.ApplyTo(message);
+                return _encoder.WriteMessage(message, int.MaxValue, _parent.BufferManager);
             }
             finally
             {
@@ -137,11 +136,11 @@ namespace Microsoft.ServiceModel.AQS
         {
             try
             {
-                queueClient.SendMessage(message.ToString());
+                _queueClient.SendMessage(message.ToString());
             }
-            catch
+            catch(Exception e)
             {
-
+                throw AzureQueueStorageChannelHelpers.ConvertTransferException(e);
             }
             finally
             {
@@ -215,7 +214,7 @@ namespace Microsoft.ServiceModel.AQS
             {
                 if (messageBuffer.Array != null)
                 {
-                    this.channel.parent.BufferManager.ReturnBuffer(messageBuffer.Array);
+                    this.channel._parent.BufferManager.ReturnBuffer(messageBuffer.Array);
                     messageBuffer = new ArraySegment<byte>();
                 }
             }

@@ -20,7 +20,7 @@ namespace Microsoft.ServiceModel.AQS
     /// </summary>
     public class SampleProfileAzureQueueStorageBinding : Binding
     {
-        private bool reliableSessionEnabled;
+        private bool _reliableSessionEnabled;
 
         // private BindingElements
         //CompositeDuplexBindingElement compositeDuplex;
@@ -51,8 +51,8 @@ namespace Microsoft.ServiceModel.AQS
 
         public bool ReliableSessionEnabled
         {
-            get { return reliableSessionEnabled; }
-            set { reliableSessionEnabled = value; }
+            get { return _reliableSessionEnabled; }
+            set { _reliableSessionEnabled = value; }
         }
 
         public override string Scheme { get { return "soap.udp"; } }
