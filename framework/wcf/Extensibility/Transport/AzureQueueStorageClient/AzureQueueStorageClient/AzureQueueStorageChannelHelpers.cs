@@ -4,8 +4,6 @@
 
 using System;
 using System.Globalization;
-using System.Net;
-using System.Net.Sockets;
 using System.ServiceModel;
 using System.ServiceModel.Channels;
 

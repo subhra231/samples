@@ -3,14 +3,10 @@
 //----------------------------------------------------------------
 
 using System;
-using System.Buffers;
-using System.Globalization;
-using System.Net;
 using System.Net.Sockets;
 using System.ServiceModel;
 using System.ServiceModel.Channels;
 using Azure.Storage.Queues;
-using Azure.Storage.Queues.Models;
 
 namespace Microsoft.ServiceModel.AQS
 {
@@ -174,7 +170,7 @@ namespace Microsoft.ServiceModel.AQS
         }
 
         /// <summary>
-        /// Implementation of async send for Udp. 
+        /// Implementation of async send for AQS. 
         /// </summary>
         private class SendAsyncResult : AsyncResult
         {
