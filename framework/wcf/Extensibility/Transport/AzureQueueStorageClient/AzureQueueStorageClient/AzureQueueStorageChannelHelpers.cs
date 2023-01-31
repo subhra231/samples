@@ -42,25 +42,6 @@ namespace Microsoft.ServiceModel.AQS
         }
     }
 
-    internal static class UdpConfigurationStrings
-    {
-        public const string MaxBufferPoolSize = "maxBufferPoolSize";
-        public const string MaxReceivedMessageSize = "maxMessageSize";
-        public const string Multicast = "multicast";
-        public const string OrderedSession = "orderedSession";
-        public const string ReliableSessionEnabled = "reliableSessionEnabled";
-        public const string SessionInactivityTimeout = "sessionInactivityTimeout";
-        public const string ClientBaseAddress = "clientBaseAddress";
-    }
-
-    internal static class UdpPolicyStrings
-    {
-        public const string UdpNamespace = "http://sample.schemas.microsoft.com/policy/aqs";
-        public const string Prefix = "aqs";
-        public const string MulticastAssertion = "Multicast";
-        public const string TransportAssertion = "soap.aqs";
-    }
-
     internal static class AzureQueueStorageChannelHelpers
     {
         /// <summary>
@@ -83,11 +64,6 @@ namespace Microsoft.ServiceModel.AQS
                 throw new ArgumentOutOfRangeException("timeout", timeout, "Timeout must be greater than or equal to TimeSpan.Zero. To disable timeout, specify TimeSpan.MaxValue.");
             }
         }
-    }
-
-    internal static class AddressingVersionConstants
-    {
-        internal const string WSAddressing10NameSpace = "http://www.w3.org/2005/08/addressing";
-        internal const string WSAddressingAugust2004NameSpace = "http://schemas.xmlsoap.org/ws/2004/08/addressing";
+        public static TimeSpan DefaultTimeout { get { return TimeSpan.FromMinutes(2); } }
     }
 }

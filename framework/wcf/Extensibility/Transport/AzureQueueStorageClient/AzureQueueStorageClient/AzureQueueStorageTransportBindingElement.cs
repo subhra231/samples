@@ -65,5 +65,8 @@ namespace Microsoft.ServiceModel.AQS
 
             return context.GetInnerProperty<T>();
         }
+
+        public AzureQueueStorageMessageEncoding QueueMessageEncoding { get; set; }
+
     }
 }

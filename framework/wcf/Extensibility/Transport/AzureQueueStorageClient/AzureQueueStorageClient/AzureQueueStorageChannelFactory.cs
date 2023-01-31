@@ -6,6 +6,7 @@ using System;
 using System.Collections.ObjectModel;
 using System.ServiceModel;
 using System.ServiceModel.Channels;
+using System.Threading.Tasks;
 
 namespace Microsoft.ServiceModel.AQS
 {
@@ -79,12 +80,12 @@ namespace Microsoft.ServiceModel.AQS
 
         protected override IAsyncResult OnBeginOpen(TimeSpan timeout, AsyncCallback callback, object state)
         {
-            return new CompletedAsyncResult(callback, state);
+            return Task.CompletedTask.ToApm(callback,state);
         }
 
         protected override void OnEndOpen(IAsyncResult result)
         {
-            CompletedAsyncResult.End(result);
+            result.ToApmEnd();
         }
 
         /// <summary>

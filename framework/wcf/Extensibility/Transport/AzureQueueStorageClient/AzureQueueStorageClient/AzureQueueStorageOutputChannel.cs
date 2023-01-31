@@ -3,10 +3,14 @@
 //----------------------------------------------------------------
 
 using System;
+using System.Buffers;
 using System.Net.Sockets;
 using System.ServiceModel;
 using System.ServiceModel.Channels;
+using System.Threading;
+using System.Threading.Tasks;
 using Azure.Storage.Queues;
+using Azure.Storage.Queues.Models;
 
 namespace Microsoft.ServiceModel.AQS
 {
@@ -26,7 +30,9 @@ namespace Microsoft.ServiceModel.AQS
         internal AzureQueueStorageOutputChannel(AzureQueueStorageChannelFactory factory, EndpointAddress remoteAddress, Uri via, MessageEncoder encoder)
             : base(factory)
         {
-            //To be implemented
+            this._remoteAddress = remoteAddress;
+            this._via = via;
+            this._encoder = encoder;
         }
 
         #region IOutputChannel_Properties
@@ -72,12 +78,12 @@ namespace Microsoft.ServiceModel.AQS
 
         protected override IAsyncResult OnBeginOpen(TimeSpan timeout, AsyncCallback callback, object state)
         {
-            return new CompletedAsyncResult(callback, state);
+            return Task.CompletedTask.ToApm(callback, state);
         }
 
         protected override void OnEndOpen(IAsyncResult result)
         {
-            CompletedAsyncResult.End(result);
+            result.ToApmEnd();
         }
 
 
@@ -101,12 +107,12 @@ namespace Microsoft.ServiceModel.AQS
         protected override IAsyncResult OnBeginClose(TimeSpan timeout, AsyncCallback callback, object state)
         {
             this.OnClose(timeout);
-            return new CompletedAsyncResult(callback, state);
+            return Task.CompletedTask.ToApm(callback, state);
         }
 
         protected override void OnEndClose(IAsyncResult result)
         {
-            CompletedAsyncResult.End(result);
+            result.ToApmEnd();
         }
         #endregion
 
@@ -130,9 +136,11 @@ namespace Microsoft.ServiceModel.AQS
 
         public void Send(Message message)
         {
+            //base.ThrowIfDisposedOrNotOpen();
             try
             {
-                _queueClient.SendMessage(message.ToString());
+                ArraySegment<byte> messageBuffer;// = EncodeMessage(message);
+                _queueClient.SendMessage(null);
             }
             catch(Exception e)
             {
@@ -155,102 +163,34 @@ namespace Microsoft.ServiceModel.AQS
         public IAsyncResult BeginSend(Message message, AsyncCallback callback, object state)
         {
             //base.ThrowIfDisposedOrNotOpen();
-            return new SendAsyncResult(this, message, callback, state);
+            return BeginSend(message, AzureQueueStorageChannelHelpers.DefaultTimeout, callback, state);
         }
 
         public IAsyncResult BeginSend(Message message, TimeSpan timeout, AsyncCallback callback, object state)
         {
-            // UDP does not block so we do not need timeouts.
-            return this.BeginSend(message, callback, state);
+            return SendAsync(message, timeout).ToApm(callback, state);
         }
 
         public void EndSend(IAsyncResult result)
         {
-            SendAsyncResult.End(result);
+            result.ToApmEnd();
         }
 
-        /// <summary>
-        /// Implementation of async send for AQS. 
-        /// </summary>
-        private class SendAsyncResult : AsyncResult
+        private async Task SendAsync(Message message, TimeSpan timeout)
         {
-            private ArraySegment<byte> messageBuffer;
-            private AzureQueueStorageOutputChannel channel;
-
-            public SendAsyncResult(AzureQueueStorageOutputChannel channel, Message message, AsyncCallback callback, object state)
-                : base(callback, state)
+            CancellationTokenSource cts = new CancellationTokenSource(timeout);
+            try
             {
-                this.channel = channel;
-                this.messageBuffer = channel.EncodeMessage(message);
-                try
-                {
-                    IAsyncResult result = null;
-                    try
-                    {
-                        
-                    }
-                    catch (SocketException socketException)
-                    {
-                        throw AzureQueueStorageChannelHelpers.ConvertTransferException(socketException);
-                    }
-
-                    if (!result.CompletedSynchronously)
-                        return;
-
-                    CompleteSend(result, true);
-                }
-                catch
-                {
-                    CleanupBuffer();
-                    throw;
-                }
+                ArraySegment<byte> messageBuffer;// = EncodeMessage(message);
+                await _queueClient.SendMessageAsync(null).ConfigureAwait(false);
             }
-
-            private void CleanupBuffer()
+            catch (Exception e)
             {
-                if (messageBuffer.Array != null)
-                {
-                    this.channel._parent.BufferManager.ReturnBuffer(messageBuffer.Array);
-                    messageBuffer = new ArraySegment<byte>();
-                }
+                throw AzureQueueStorageChannelHelpers.ConvertTransferException(e);
             }
-
-            private void CompleteSend(IAsyncResult result, bool synchronous)
+            finally
             {
-                try
-                {
-                    
-                }
-                catch (SocketException socketException)
-                {
-                    throw AzureQueueStorageChannelHelpers.ConvertTransferException(socketException);
-                }
-                finally
-                {
-                    CleanupBuffer();
-                }
-
-                base.Complete(synchronous);
-            }
-
-            private void OnSend(IAsyncResult result)
-            {
-                if (result.CompletedSynchronously)
-                    return;
-
-                try
-                {
-                    CompleteSend(result, false);
-                }
-                catch (Exception e)
-                {
-                    base.Complete(false, e);
-                }
-            }
-
-            public static void End(IAsyncResult result)
-            {
-                AsyncResult.End<SendAsyncResult>(result);
+                cts.Dispose();
             }
         }
         #endregion
