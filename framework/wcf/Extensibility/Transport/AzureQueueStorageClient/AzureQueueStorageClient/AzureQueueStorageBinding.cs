@@ -39,12 +39,15 @@ namespace Microsoft.ServiceModel.AQS
             {
                 case AzureQueueStorageMessageEncoding.Binary:
                     elements.Add(_binaryMessageEncodingBindingElement);
+                    _transport.QueueMessageEncoding = Azure.Storage.Queues.QueueMessageEncoding.Base64;
                     break;
                 case AzureQueueStorageMessageEncoding.Text:
                     elements.Add(_textMessageEncodingBindingElement);
+                    _transport.QueueMessageEncoding = Azure.Storage.Queues.QueueMessageEncoding.None;
                     break;
                 default:
                     elements.Add(_textMessageEncodingBindingElement);
+                    _transport.QueueMessageEncoding = Azure.Storage.Queues.QueueMessageEncoding.None;
                     break;
             }
 

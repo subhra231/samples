@@ -3,8 +3,6 @@
 //----------------------------------------------------------------
 
 using System;
-using System.Buffers;
-using System.Net.Sockets;
 using System.ServiceModel;
 using System.ServiceModel.Channels;
 using System.Threading;
@@ -87,7 +85,7 @@ namespace Microsoft.ServiceModel.AQS
         }
 
 
-        #region Socket_Shutdown
+        #region Shutdown
         /// <summary>
         /// Shutdown ungracefully
         /// </summary>
@@ -117,6 +115,68 @@ namespace Microsoft.ServiceModel.AQS
         #endregion
 
         #region Send_Synchronous
+        public void Send(Message message)
+        {
+            this.Send(message, default);
+        }
+
+        public void Send(Message message, TimeSpan timeout)
+        {
+            CancellationTokenSource cts = new CancellationTokenSource(timeout);
+            try
+            {
+                ArraySegment<byte> messageBuffer = EncodeMessage(message);
+                BinaryData binaryData = new BinaryData(new ReadOnlyMemory<byte>(messageBuffer.Array, messageBuffer.Offset, messageBuffer.Count));
+                _queueClient.SendMessage(binaryData, default, default, cts.Token);
+            }
+            catch (Exception e)
+            {
+                throw AzureQueueStorageChannelHelpers.ConvertTransferException(e);
+            }
+            finally
+            {
+                cts.Dispose();
+            }
+        }
+        #endregion
+
+        #region Send_Asynchronous
+        public IAsyncResult BeginSend(Message message, AsyncCallback callback, object state)
+        {      
+            return BeginSend(message, default, callback, state);
+        }
+
+        public IAsyncResult BeginSend(Message message, TimeSpan timeout, AsyncCallback callback, object state)
+        {
+            AzureQueueStorageChannelHelpers.ThrowIfDisposedOrNotOpen(state);
+            return SendAsync(message, timeout).ToApm(callback, state);
+        }
+
+        public void EndSend(IAsyncResult result)
+        {
+            result.ToApmEnd();
+        }
+
+        private async Task SendAsync(Message message, TimeSpan timeout)
+        {
+            CancellationTokenSource cts = new CancellationTokenSource(timeout);
+            try
+            {
+                ArraySegment<byte> messageBuffer = EncodeMessage(message);
+                BinaryData binaryData = new BinaryData(new ReadOnlyMemory<byte>(messageBuffer.Array, messageBuffer.Offset, messageBuffer.Count));
+                await _queueClient.SendMessageAsync(binaryData, default, default, cts.Token).ConfigureAwait(false);
+            }
+            catch (Exception e)
+            {
+                throw AzureQueueStorageChannelHelpers.ConvertTransferException(e);
+            }
+            finally
+            {
+                cts.Dispose();
+            }
+        }
+        #endregion
+
         /// <summary>
         /// Address the Message and serialize it into a byte array.
         /// </summary>
@@ -133,66 +193,5 @@ namespace Microsoft.ServiceModel.AQS
                 message.Close();
             }
         }
-
-        public void Send(Message message)
-        {
-            //base.ThrowIfDisposedOrNotOpen();
-            try
-            {
-                ArraySegment<byte> messageBuffer;// = EncodeMessage(message);
-                _queueClient.SendMessage(null);
-            }
-            catch(Exception e)
-            {
-                throw AzureQueueStorageChannelHelpers.ConvertTransferException(e);
-            }
-            finally
-            {
-               
-            }
-        }
-
-        public void Send(Message message, TimeSpan timeout)
-        {
-            // UDP does not block so we do not need timeouts.
-            this.Send(message);
-        }
-        #endregion
-
-        #region Send_Asynchronous
-        public IAsyncResult BeginSend(Message message, AsyncCallback callback, object state)
-        {
-            //base.ThrowIfDisposedOrNotOpen();
-            return BeginSend(message, AzureQueueStorageChannelHelpers.DefaultTimeout, callback, state);
-        }
-
-        public IAsyncResult BeginSend(Message message, TimeSpan timeout, AsyncCallback callback, object state)
-        {
-            return SendAsync(message, timeout).ToApm(callback, state);
-        }
-
-        public void EndSend(IAsyncResult result)
-        {
-            result.ToApmEnd();
-        }
-
-        private async Task SendAsync(Message message, TimeSpan timeout)
-        {
-            CancellationTokenSource cts = new CancellationTokenSource(timeout);
-            try
-            {
-                ArraySegment<byte> messageBuffer;// = EncodeMessage(message);
-                await _queueClient.SendMessageAsync(null).ConfigureAwait(false);
-            }
-            catch (Exception e)
-            {
-                throw AzureQueueStorageChannelHelpers.ConvertTransferException(e);
-            }
-            finally
-            {
-                cts.Dispose();
-            }
-        }
-        #endregion
     }
 }

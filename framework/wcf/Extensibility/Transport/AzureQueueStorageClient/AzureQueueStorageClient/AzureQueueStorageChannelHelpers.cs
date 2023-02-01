@@ -15,7 +15,7 @@ namespace Microsoft.ServiceModel.AQS
     internal static class AzureQueueStorageConstants
     {
         internal const string EventLogSourceName = "Microsoft.ServiceModel.AQS";
-        internal const string Scheme = "soap.aqs";
+        internal const string Scheme = "net.aqs";
         private static MessageEncoderFactory s_messageEncoderFactory;
         static AzureQueueStorageConstants()
         {
@@ -32,7 +32,6 @@ namespace Microsoft.ServiceModel.AQS
             }
         }
 
-        // we can use the same encoder for all our Udp Channels as it's free-threaded
         internal static MessageEncoderFactory DefaultMessageEncoderFactory
        {
             get
@@ -57,6 +56,23 @@ namespace Microsoft.ServiceModel.AQS
                 e);
         }
 
+        internal static void ThrowIfDisposedOrNotOpen(object state)
+        {
+            switch (state)
+            {
+                case CommunicationState.Created:
+                case CommunicationState.Opening:
+                case CommunicationState.Closing:
+                case CommunicationState.Closed:
+                case CommunicationState.Faulted:
+                    throw new CommunicationException("ThrowIfDisposedOrNotOpen: Communicate object not in open state. Current state: " + state.ToString());
+                default:
+                    throw new CommunicationException("ThrowIfDisposedOrNotOpen: Unknown CommunicationObject.state");
+                case CommunicationState.Opened:
+                    break;
+            }
+        }
+
         internal static void ValidateTimeout(TimeSpan timeout)
         {
             if (timeout < TimeSpan.Zero)
@@ -64,6 +80,5 @@ namespace Microsoft.ServiceModel.AQS
                 throw new ArgumentOutOfRangeException("timeout", timeout, "Timeout must be greater than or equal to TimeSpan.Zero. To disable timeout, specify TimeSpan.MaxValue.");
             }
         }
-        public static TimeSpan DefaultTimeout { get { return TimeSpan.FromMinutes(2); } }
     }
 }
