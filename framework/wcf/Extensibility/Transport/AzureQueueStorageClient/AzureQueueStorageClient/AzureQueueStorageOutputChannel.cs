@@ -23,6 +23,7 @@ namespace Microsoft.ServiceModel.AQS
         private MessageEncoder _encoder;
         private AzureQueueStorageChannelFactory _parent;
         private QueueClient _queueClient;
+        private ArraySegment<byte> _messageBuffer;
         #endregion
 
         internal AzureQueueStorageOutputChannel(AzureQueueStorageChannelFactory factory, EndpointAddress remoteAddress, Uri via, MessageEncoder encoder)
@@ -122,11 +123,11 @@ namespace Microsoft.ServiceModel.AQS
 
         public void Send(Message message, TimeSpan timeout)
         {
-            CancellationTokenSource cts = new CancellationTokenSource(timeout);
+            CancellationTokenSource cts = new(timeout);
             try
             {
                 ArraySegment<byte> messageBuffer = EncodeMessage(message);
-                BinaryData binaryData = new BinaryData(new ReadOnlyMemory<byte>(messageBuffer.Array, messageBuffer.Offset, messageBuffer.Count));
+                BinaryData binaryData = new(new ReadOnlyMemory<byte>(messageBuffer.Array, messageBuffer.Offset, messageBuffer.Count));
                 _queueClient.SendMessage(binaryData, default, default, cts.Token);
             }
             catch (Exception e)
@@ -135,6 +136,7 @@ namespace Microsoft.ServiceModel.AQS
             }
             finally
             {
+                CleanupBuffer();
                 cts.Dispose();
             }
         }
@@ -159,11 +161,12 @@ namespace Microsoft.ServiceModel.AQS
 
         private async Task SendAsync(Message message, TimeSpan timeout)
         {
-            CancellationTokenSource cts = new CancellationTokenSource(timeout);
+            CancellationTokenSource cts = new(timeout);
+            
             try
             {
-                ArraySegment<byte> messageBuffer = EncodeMessage(message);
-                BinaryData binaryData = new BinaryData(new ReadOnlyMemory<byte>(messageBuffer.Array, messageBuffer.Offset, messageBuffer.Count));
+                _messageBuffer = EncodeMessage(message);
+                BinaryData binaryData = new(new ReadOnlyMemory<byte>(_messageBuffer.Array, _messageBuffer.Offset, _messageBuffer.Count));
                 await _queueClient.SendMessageAsync(binaryData, default, default, cts.Token).ConfigureAwait(false);
             }
             catch (Exception e)
@@ -172,6 +175,7 @@ namespace Microsoft.ServiceModel.AQS
             }
             finally
             {
+                CleanupBuffer();
                 cts.Dispose();
             }
         }
@@ -191,6 +195,15 @@ namespace Microsoft.ServiceModel.AQS
             {
                 // We have consumed the message by serializing it, so clean up
                 message.Close();
+            }
+        }
+
+        void CleanupBuffer()
+        {
+            if (_messageBuffer.Array != null)
+            {
+                _parent.BufferManager.ReturnBuffer(_messageBuffer.Array);
+                _messageBuffer = new ArraySegment<byte>();
             }
         }
     }

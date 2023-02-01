@@ -19,7 +19,7 @@ namespace Microsoft.ServiceModel.AQS
             Initialize();
         }
 
-        public override string Scheme { get { return "soap.aqs"; } }
+        public override string Scheme { get { return "net.aqs"; } }
 
         public EnvelopeVersion SoapVersion
         {

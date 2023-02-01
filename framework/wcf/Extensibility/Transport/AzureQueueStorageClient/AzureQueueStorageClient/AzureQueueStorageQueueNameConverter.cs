@@ -4,6 +4,7 @@
 using System;
 using System.Net;
 using System.Security.Policy;
+using Azure.Storage.Queues;
 
 namespace Microsoft.ServiceModel.AQS
 {
@@ -11,12 +12,17 @@ namespace Microsoft.ServiceModel.AQS
     {
         public static string ConvertToHttpEndpointUrl(Uri uri)
         {
-            return uri.LocalPath.Replace("net.aqs", "https");
+            QueueUriBuilder builder = new QueueUriBuilder(uri);
+            return "https://" + builder.AccountName.ToString() +"." + builder.Host.ToString() + "/" + builder.QueueName.ToString() + ":" + builder.Port.ToString();
+            //return new QueueUriBuilder(uri).ToString();
+            //return uri.LocalPath.Replace("net.aqs", "https");
         }
 
         public static string ConvertToNetEndpointUrl(Uri uri)
         {
-            return uri.LocalPath.Replace("https", "net.aqs");
+            QueueUriBuilder builder = new QueueUriBuilder(uri);
+            return "net.aqs://" + builder.AccountName.ToString() + "." + builder.QueueName.ToString() + "." + builder.Host.ToString() + ":" + builder.Port.ToString();
+            //return uri.LocalPath.Replace("https", "net.aqs");
         }
     }
 }
