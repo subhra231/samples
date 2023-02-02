@@ -203,7 +203,7 @@ namespace Microsoft.ServiceModel.AQS
             }
         }
 
-        void CleanupBuffer()
+        private void CleanupBuffer()
         {
             if (_messageBuffer.Array != null)
             {
