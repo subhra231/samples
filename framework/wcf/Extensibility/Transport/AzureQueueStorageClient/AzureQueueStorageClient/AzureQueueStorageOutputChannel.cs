@@ -7,6 +7,7 @@ using System.ServiceModel;
 using System.ServiceModel.Channels;
 using System.Threading;
 using System.Threading.Tasks;
+using Azure.Identity;
 using Azure.Storage.Queues;
 using Azure.Storage.Queues.Models;
 
@@ -32,6 +33,10 @@ namespace Microsoft.ServiceModel.AQS
             this._remoteAddress = remoteAddress;
             this._via = via;
             this._encoder = encoder;
+
+            Uri queueUri = AzureQueueStorageQueueNameConverter.ConvertToHttpEndpointUrl(via);
+            var credential = new DefaultAzureCredential();
+            _queueClient = new QueueClient(queueUri, credential);
         }
 
         #region IOutputChannel_Properties
