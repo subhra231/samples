@@ -14,8 +14,9 @@ namespace Microsoft.ServiceModel.AQS
         private BinaryMessageEncodingBindingElement _binaryMessageEncodingBindingElement;
         private bool _isInitialized;
 
-        public AzureQueueStorageBinding()
+        public AzureQueueStorageBinding(AzureQueueStorageMessageEncoding azureQueueStorageMessageEncoding)
         {
+            this.MessageEncoding = azureQueueStorageMessageEncoding;
             Initialize();
         }
 
