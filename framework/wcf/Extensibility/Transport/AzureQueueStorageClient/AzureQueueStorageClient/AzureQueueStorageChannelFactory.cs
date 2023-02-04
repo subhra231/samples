@@ -24,22 +24,6 @@ namespace Microsoft.ServiceModel.AQS
             : base(context.Binding)
         {
             this._bufferManager = BufferManager.CreateBufferManager(bindingElement.MaxBufferPoolSize, int.MaxValue);
-
-           /* Collection<MessageEncodingBindingElement> messageEncoderBindingElements
-                = context.BindingParameters.FindAll<MessageEncodingBindingElement>();
-
-            if(messageEncoderBindingElements.Count > 1)
-            {
-                throw new InvalidOperationException("More than one MessageEncodingBindingElement was found in the BindingParameters of the BindingContext");
-            }
-            else if (messageEncoderBindingElements.Count == 1)
-            {
-                this.messageEncoderFactory = messageEncoderBindingElements[0].CreateMessageEncoderFactory();
-            }
-            else
-            {
-                this.messageEncoderFactory = UdpConstants.DefaultMessageEncoderFactory;
-            }*/
         }
 
         public BufferManager BufferManager
