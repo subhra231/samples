@@ -16,7 +16,7 @@ namespace Microsoft.ServiceModel.AQS
     /// <summary>
     /// IOutputChannel implementation for AzureQueueStorage.
     /// </summary>
-    internal class AzureQueueStorageOutputChannel : ChannelBase, IOutputChannel
+    public class AzureQueueStorageOutputChannel : ChannelBase, IOutputChannel
     {
         #region member_variables
         private EndpointAddress _remoteAddress;
@@ -27,7 +27,7 @@ namespace Microsoft.ServiceModel.AQS
         private ArraySegment<byte> _messageBuffer;
         #endregion
 
-        internal AzureQueueStorageOutputChannel(AzureQueueStorageChannelFactory factory, EndpointAddress remoteAddress, Uri via, MessageEncoder encoder)
+        public AzureQueueStorageOutputChannel(AzureQueueStorageChannelFactory factory, EndpointAddress remoteAddress, Uri via, MessageEncoder encoder)
             : base(factory)
         {
             this._remoteAddress = remoteAddress;

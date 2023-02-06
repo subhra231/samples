@@ -13,14 +13,14 @@ namespace Microsoft.ServiceModel.AQS
     /// <summary>
     /// IChannelFactory implementation for AzureQueueStorage.
     /// </summary>
-    internal class AzureQueueStorageChannelFactory : ChannelFactoryBase<IOutputChannel>
+    public class AzureQueueStorageChannelFactory : ChannelFactoryBase<IOutputChannel>
     {
         #region member_variables
         private BufferManager _bufferManager;
         private MessageEncoderFactory _messageEncoderFactory;
         #endregion
 
-        internal AzureQueueStorageChannelFactory(AzureQueueStorageTransportBindingElement bindingElement, BindingContext context)
+        public AzureQueueStorageChannelFactory(AzureQueueStorageTransportBindingElement bindingElement, BindingContext context)
             : base(context.Binding)
         {
             this._bufferManager = BufferManager.CreateBufferManager(bindingElement.MaxBufferPoolSize, int.MaxValue);

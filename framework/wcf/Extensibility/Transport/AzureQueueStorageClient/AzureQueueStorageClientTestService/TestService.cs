@@ -4,7 +4,7 @@
 using System.ServiceModel;
 using System.Threading;
 
-namespace Contracts
+namespace Microsoft.ServiceModel.AQS.Tests
 {
     [ServiceContract]
     public interface ITestContract
